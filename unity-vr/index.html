@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <title>Unity WebGL Player | WebXRImplement</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link rel="shortcut icon" href="TemplateData/favicon.ico">
+  <link rel="stylesheet" href="TemplateData/style.css">
+  <style>
+    /* Ensure the html and body take full height */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden; /* Prevent scrollbars */
+    }
+
+    /* Unity Container should fill the entire viewport */
+    #unity-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Unity Canvas should fill the container */
+    #unity-canvas {
+      width: 100%;
+      height: 100%;
+      background: #000000; /* Optional: Set a background color */
+      display: block;
+    }
+
+    /* Loading Overlay styling */
+    #unity-loading-bar {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 300px;
+      text-align: center;
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      z-index: 1000; /* Ensure it stays above the canvas */
+    }
+
+    #unity-progress-bar-empty {
+      width: 100%;
+      height: 20px;
+      background-color: #ccc;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    #unity-progress-bar-full {
+      width: 0%;
+      height: 100%;
+      background-color: #76c7c0;
+      transition: width 0.5s;
+    }
+
+    /* WebGL Warning styling */
+    #webgl-warning {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: red;
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      z-index: 1001; /* Ensure it stays above the loading overlay */
+      display: none; /* Hidden by default */
+    }
+
+    /* Footer styling */
+    #unity-footer {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: auto;
+      text-align: center;
+      color: #ffffff;
+      z-index: 1000; /* Ensure it stays above the canvas */
+    }
+
+    /* Buttons styling in footer */
+    #unity-footer button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background-color: #76c7c0;
+      color: #ffffff;
+    }
+
+    #unity-footer button:disabled {
+      background-color: #999999;
+      cursor: not-allowed;
+    }
+
+    /* Links in footer */
+    #unity-webxr-link a {
+      color: #76c7c0;
+      text-decoration: none;
+    }
+
+    #unity-webxr-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas"></canvas>
+    <div id="unity-loading-bar">
+      <div id="unity-logo">Loading Unity VR Scene...</div>
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
+      </div>
+    </div>
+    <div id="webgl-warning">
+      <p>Your browser does not support WebGL 2.0, which is required for this application.</p>
+      <p>Please update your browser or use a different one.</p>
+    </div>
+    <div id="unity-footer">
+      <button id="entervr" value="Enter VR" disabled>VR</button>
+      <button id="enterar" value="Enter AR" disabled>AR</button>
+      <div id="unity-webxr-link" style="margin-top: 10px;">
+        Using <a href="https://github.com/De-Panther/unity-webxr-export" target="_blank" title="WebXR Export">WebXR Export</a>
+      </div>
+      <div id="unity-build-title" style="margin-top: 5px;">WebXRImplement</div>
+    </div>
+  </div>
+  <script>
+    (async function() {
+      // Define build URLs
+      const buildUrl = "Build";
+      const loaderUrl = `${buildUrl}/WebGL_NewBuild.loader.js`;
+      const frameworkUrl = `${buildUrl}/WebGL_NewBuild.framework.js`;
+      const codeUrl = `${buildUrl}/WebGL_NewBuild.wasm`;
+
+      // Define data parts
+      const dataParts = [
+        `${buildUrl}/WebGL_NewBuild.data.part_aa`,
+        `${buildUrl}/WebGL_NewBuild.data.part_ab`,
+        `${buildUrl}/WebGL_NewBuild.data.part_ac`
+      ];
+
+      // Initialize Unity configuration
+      const config = {
+        dataUrl: "", // To be set after data reconstruction
+        frameworkUrl: frameworkUrl,
+        codeUrl: codeUrl,
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "WebXRImplement",
+        productVersion: "0.1",
+      };
+
+      // DOM elements
+      const unityContainer = document.getElementById("unity-container");
+      const unityCanvas = document.getElementById("unity-canvas");
+      const loadingBar = document.getElementById("unity-loading-bar");
+      const progressBarFull = document.getElementById("unity-progress-bar-full");
+      const webglWarning = document.getElementById('webgl-warning');
+      const enterARButton = document.getElementById('enterar');
+      const enterVRButton = document.getElementById('entervr');
+
+      let unityInstance = null;
+
+      // Function to check WebGL 2.0 support
+      function isWebGL2Supported() {
+        try {
+          const canvas = document.createElement('canvas');
+          return !!(window.WebGL2RenderingContext && canvas.getContext('webgl2'));
+        } catch (e) {
+          return false;
+        }
+      }
+
+      // If WebGL 2.0 is not supported, show warning and exit
+      if (!isWebGL2Supported()) {
+        loadingBar.style.display = 'none';
+        webglWarning.style.display = 'block';
+        return;
+      }
+
+      // Function to fetch and combine data parts
+      async function fetchAndCombineData(parts) {
+        try {
+          const buffers = [];
+          for (let i = 0; i < parts.length; i++) {
+            const response = await fetch(parts[i]);
+            if (!response.ok) {
+              throw new Error(`Failed to fetch ${parts[i]}`);
+            }
+            const buffer = await response.arrayBuffer();
+            buffers.push(buffer);
+            // Update progress bar
+            const progress = ((i + 1) / parts.length) * 100;
+            progressBarFull.style.width = `${progress}%`;
+          }
+
+          // Calculate total length
+          const totalLength = buffers.reduce((acc, buffer) => acc + buffer.byteLength, 0);
+          const combinedBuffer = new Uint8Array(totalLength);
+          let offset = 0;
+          for (let buffer of buffers) {
+            combinedBuffer.set(new Uint8Array(buffer), offset);
+            offset += buffer.byteLength;
+          }
+
+          // Create Blob URL
+          const blob = new Blob([combinedBuffer.buffer], { type: 'application/octet-stream' });
+          const dataUrl = URL.createObjectURL(blob);
+          return dataUrl;
+        } catch (error) {
+          console.error(error);
+          alert("Failed to load Unity data.");
+          loadingBar.style.display = 'none';
+          return null;
+        }
+      }
+
+      // Fetch and combine data parts
+      const reconstructedDataUrl = await fetchAndCombineData(dataParts);
+      if (!reconstructedDataUrl) {
+        return;
+      }
+      config.dataUrl = reconstructedDataUrl;
+
+      // Dynamically load Unity loader script
+      const script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(unityCanvas, config, (progress) => {
+          // Optional: Further progress handling if needed
+        }).then((instance) => {
+          unityInstance = instance;
+          loadingBar.style.display = "none";
+          // Notify parent that Unity has loaded
+          window.parent.postMessage({ unityLoaded: true }, "*");
+        }).catch((message) => {
+          alert(message);
+        });
+      };
+      script.onerror = () => {
+        alert("Failed to load Unity loader script.");
+        loadingBar.style.display = 'none';
+      };
+      document.body.appendChild(script);
+
+      // Event listeners for AR and VR buttons
+      document.addEventListener('onARSupportedCheck', function (event) {
+        enterARButton.disabled = !event.detail.supported;
+      }, false);
+      document.addEventListener('onVRSupportedCheck', function (event) {
+        enterVRButton.disabled = !event.detail.supported;
+      }, false);
+
+      enterARButton.addEventListener('click', function (event) {
+        if (unityInstance && unityInstance.Module && unityInstance.Module.WebXR) {
+          unityInstance.Module.WebXR.toggleAR();
+        }
+      }, false);
+      enterVRButton.addEventListener('click', function (event) {
+        if (unityInstance && unityInstance.Module && unityInstance.Module.WebXR) {
+          unityInstance.Module.WebXR.toggleVR();
+        }
+      }, false);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <title>🔥 Geocommons Fire Prep Dashboard 🔥</title>
+  <meta name="description" content="A dashboard for emergency preparedness with Unity VR and 3D model preview.">
+  <link rel="stylesheet" href="style.css">
+  <!-- Include model-viewer library -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>🔥 Geocommons Fire Prep Dashboard 🔥</h1>
+  </header>
+  <div class="container">
+    <div class="sidebar left">
+      <!-- First Box: People in Room -->
+      <div class="box small-box" id="person-count-box">
+        <h3>People in Room</h3>
+        <p id="person-count">Loading...</p>
+      </div>
+      <!-- Second Box: Presence Detection -->
+      <div class="box small-box" id="motion-presence-box">
+        <h3>Presence Detection</h3>
+        <p id="motion-status">Loading...</p>
+      </div>
+      <!-- Embedded Map -->
+      <div class="box" id="map-box">
+        <h3>Map</h3>
+        <iframe width="100%" height="250" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" title="Map" src="https://www.arcgis.com/apps/Embed/index.html?webmap=3c8015df0c3c484a96df7739a97ae967&amp;marker=-93.2434050615;44.9718820253;;;https://egis.umn.edu/bldg_detail_pages_map_marker.GIF;;&amp;level=4"></iframe>
+      </div>
+      <!-- Fourth Box: Project Description -->
+      <div class="box" id="project-description-box">
+        <h3>Project Description</h3>
+        <a href="#" target="_blank">Description Document</a><br>
+        <p style="font-size: 12px; color: gray;">By Laure Briol</p>
+      </div>
+    </div>
+
+    <!-- Left Resizer -->
+    <div class="resizer left-resizer" id="left-resizer"></div>
+
+    <div class="viewer">
+      <!-- Toggle Button -->
+      <button id="toggle-view">Show 3D Model</button>
+
+      <!-- Loading Overlay for Unity -->
+      <div id="dashboard-loading-bar">
+        <div id="dashboard-loading-logo">Loading Dashboard...</div>
+        <div id="dashboard-progress-bar-empty">
+          <div id="dashboard-progress-bar-full"></div>
+        </div>
+      </div>
+
+      <!-- Loading Overlay for Model Viewer -->
+      <div id="model-loading-bar">
+        <div id="model-loading-logo">Loading 3D Model...</div>
+        <div id="model-progress-bar-empty">
+          <div id="model-progress-bar-full"></div>
+        </div>
+      </div>
+
+      <!-- Unity Iframe Container -->
+      <div id="unity-container">
+        <iframe src="unity-vr/index.html" id="unity-iframe" frameborder="0"></iframe>
+        <div id="webgl-warning">
+          <p>Your browser does not support WebGL 2.0, which is required for this application.</p>
+          <p>Please update your browser or use a different one.</p>
+        </div>
+      </div>
+
+      <!-- model-viewer Container -->
+      <div id="model-viewer-container">
+        <model-viewer 
+          src="models/MVP1_Small.glb" 
+          alt="3D Model MVP1_Small" 
+          auto-rotate 
+          camera-controls 
+          background-color="#000000">
+        </model-viewer>
+      </div>
+    </div>
+
+    <!-- Right Resizer -->
+    <div class="resizer right-resizer" id="right-resizer"></div>
+
+    <div class="sidebar right">
+      <!-- First Box: Google Calendar -->
+      <div class="box" id="calendar-box">
+        <h2>Schedule</h2>
+        <!-- Embed Google Calendar here -->
+        <iframe src="https://calendar.google.com/calendar/embed?src=c_440c747feb55275820ebed371c80d0ff3cb461079fb2edb591a72736ff0d0ffb%40group.calendar.google.com&ctz=America%2FChicago" style="border: 0" width="100%" height="400" frameborder="0" scrolling="no"></iframe>
+      </div>
+      <!-- Second Box: Information -->
+      <div class="box" id="links-box">
+        <h3>Information</h3>
+        <ul>
+          <li><a href="https://geocommons.umn.edu/" target="_blank">Geocommons (Blegen Hall 445)</a></li>
+          <li><a href="https://campusmaps.umn.edu/blegen-hall" target="_blank">Building information (Blegen Hall)</a></li>
+        </ul>
+      </div>
+      <!-- Final Box: Fire Safety Resources -->
+      <div class="box" id="fire-safety-box">
+        <h3>Fire Safety Resources</h3>
+        <ul>
+          <li><a href="https://www.minneapolismn.gov/resident-services/public-safety/prevent-prepare/fire-safety/" target="_blank">MLPS Fire Prevention</a></li>
+          <li><a href="https://www.minneapolismn.gov/government/departments/fire/fire-station-locations/" target="_blank">MLPS Fire Stations</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div id="unity-footer">
+    <button id="entervr" value="Enter VR" disabled>VR</button>
+    <button id="enterar" value="Enter AR" disabled>AR</button>
+    <div id="unity-webxr-link" style="margin-top: 10px;">
+      Using <a href="https://github.com/De-Panther/unity-webxr-export" target="_blank" title="WebXR Export" style="color: #76c7c0;">WebXR Export</a>
+    </div>
+    <div id="unity-build-title" style="margin-top: 5px;">WebXRImplement</div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
