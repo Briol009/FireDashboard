@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const unityContainer = document.getElementById('unity-container');
   const modelViewerContainer = document.getElementById('model-viewer-container');
   const unityIframe = document.getElementById('unity-iframe');
-  const dashboardLoadingBar = document.getElementById('dashboard-loading-bar');
   const webglWarning = document.getElementById('webgl-warning');
   const container = document.querySelector('.container');
   const header = document.querySelector('header');
@@ -64,8 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
       modelViewerContainer.style.display = 'none';
       toggleButton.textContent = 'Show 3D Model';
 
-      // Show the Unity loading overlay
-      dashboardLoadingBar.style.display = 'flex';
+      // No need to show the Unity loading overlay
     }
     isUnityVisible = !isUnityVisible;
   });
@@ -76,29 +74,49 @@ document.addEventListener('DOMContentLoaded', () => {
     isModelLoaded = true; // Set the flag to true
   });
 
-  // Listen for postMessage from Unity iframe
-  window.addEventListener('message', (event) => {
-    if (event.data && event.data.unityLoaded) {
-      // Hide the loading overlay
-      dashboardLoadingBar.style.display = 'none';
+  // Variables to store current positions
+  let isResizingLeft = false;
+  let isResizingRight = false;
+
+  // Mouse down events
+  leftResizer.addEventListener('mousedown', function (e) {
+    isResizingLeft = true;
+    document.body.style.cursor = 'ew-resize';
+  });
+
+  rightResizer.addEventListener('mousedown', function (e) {
+    isResizingRight = true;
+    document.body.style.cursor = 'ew-resize';
+  });
+
+  // Mouse move event
+  document.addEventListener('mousemove', function (e) {
+    if (isResizingLeft) {
+      let newWidth = e.clientX - leftSidebar.offsetLeft;
+      if (newWidth > 100 && newWidth < 400) {
+        leftSidebar.style.width = newWidth + 'px';
+      }
+    } else if (isResizingRight) {
+      let totalWidth = container.clientWidth;
+      let newWidth = totalWidth - e.clientX;
+      if (newWidth > 100 && newWidth < 400) {
+        rightSidebar.style.width = newWidth + 'px';
+      }
     }
   });
 
-  // Handle iframe load event as a fallback
-  unityIframe.addEventListener('load', () => {
-    // Hide the loading overlay
-    dashboardLoadingBar.style.display = 'none';
+  // Mouse up event
+  document.addEventListener('mouseup', function (e) {
+    if (isResizingLeft || isResizingRight) {
+      isResizingLeft = false;
+      isResizingRight = false;
+      document.body.style.cursor = 'default';
+    }
   });
-
-  // Remove the Unity loading overlay on initial load
-  dashboardLoadingBar.style.display = 'none';
-
-  // Ensure the model loading overlay is visible initially
-  modelLoadingBar.style.display = 'flex';
 
   // CORS Proxy URL (replace with your actual function URL)
   const CORS_PROXY_URL = 'https://us-central1-giscloud-436023.cloudfunctions.net/corstest2';
-  
+
   // Function to fetch data from CORS proxy
   async function fetchData() {
     try {
@@ -149,44 +167,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Set interval to refresh data every 5 seconds
   setInterval(fetchData, 5000);
-
-  // Variables to store current positions
-  let isResizingLeft = false;
-  let isResizingRight = false;
-
-  // Mouse down events
-  leftResizer.addEventListener('mousedown', function (e) {
-    isResizingLeft = true;
-    document.body.style.cursor = 'ew-resize';
-  });
-
-  rightResizer.addEventListener('mousedown', function (e) {
-    isResizingRight = true;
-    document.body.style.cursor = 'ew-resize';
-  });
-
-  // Mouse move event
-  document.addEventListener('mousemove', function (e) {
-    if (isResizingLeft) {
-      let newWidth = e.clientX - leftSidebar.offsetLeft;
-      if (newWidth > 100 && newWidth < 400) {
-        leftSidebar.style.width = newWidth + 'px';
-      }
-    } else if (isResizingRight) {
-      let totalWidth = container.clientWidth;
-      let newWidth = totalWidth - e.clientX;
-      if (newWidth > 100 && newWidth < 400) {
-        rightSidebar.style.width = newWidth + 'px';
-      }
-    }
-  });
-
-  // Mouse up event
-  document.addEventListener('mouseup', function (e) {
-    if (isResizingLeft || isResizingRight) {
-      isResizingLeft = false;
-      isResizingRight = false;
-      document.body.style.cursor = 'default';
-    }
-  });
 });
