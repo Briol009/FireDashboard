@@ -27,7 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const rightSidebar = document.querySelector('.sidebar.right');
   const viewer = document.querySelector('.viewer');
 
-  let isUnityVisible = true; // Track current view state
+  let isUnityVisible = false; // Start with Unity hidden
+  let isModelLoaded = false; // Track if the model has been loaded
 
   // Function to adjust the margin-top of the container based on header height
   function adjustContainerMargin() {
@@ -50,16 +51,21 @@ document.addEventListener('DOMContentLoaded', () => {
       modelViewerContainer.style.display = 'block';
       toggleButton.textContent = 'Show Unity VR';
 
-      // Show the model loading overlay
-      modelLoadingBar.style.display = 'flex';
+      if (!isModelLoaded) {
+        // Show the model loading overlay
+        modelLoadingBar.style.display = 'flex';
+      } else {
+        // Hide the model loading overlay
+        modelLoadingBar.style.display = 'none';
+      }
     } else {
       // Show Unity iframe and hide model-viewer
       unityContainer.style.display = 'block';
       modelViewerContainer.style.display = 'none';
       toggleButton.textContent = 'Show 3D Model';
 
-      // Hide the model loading overlay
-      modelLoadingBar.style.display = 'none';
+      // Show the Unity loading overlay
+      dashboardLoadingBar.style.display = 'flex';
     }
     isUnityVisible = !isUnityVisible;
   });
@@ -67,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // When the model is loaded
   modelViewer.addEventListener('load', () => {
     modelLoadingBar.style.display = 'none';
+    isModelLoaded = true; // Set the flag to true
   });
 
   // Listen for postMessage from Unity iframe
@@ -83,13 +90,11 @@ document.addEventListener('DOMContentLoaded', () => {
     dashboardLoadingBar.style.display = 'none';
   });
 
-  // Display the loading overlay when the iframe is about to unload or reload
-  unityIframe.addEventListener('beforeunload', () => {
-    dashboardLoadingBar.style.display = 'flex';
-  });
+  // Remove the Unity loading overlay on initial load
+  dashboardLoadingBar.style.display = 'none';
 
-  // Ensure the loading overlay is visible initially
-  dashboardLoadingBar.style.display = 'flex';
+  // Ensure the model loading overlay is visible initially
+  modelLoadingBar.style.display = 'flex';
 
   // CORS Proxy URL (replace with your actual function URL)
   const CORS_PROXY_URL = 'https://us-central1-giscloud-436023.cloudfunctions.net/corstest2';

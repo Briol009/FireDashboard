@@ -32,7 +32,8 @@
       <!-- Fourth Box: Project Description -->
       <div class="box" id="project-description-box">
         <h3>Project Description</h3>
-        <a href="#" target="_blank">Description Document</a><br>
+        <!-- Updated link and text -->
+        <a href="https://github.com/Briol009/FireDashboard" target="_blank">Project README</a><br>
         <p style="font-size: 12px; color: gray;">By Laure Briol</p>
       </div>
     </div>
@@ -42,7 +43,8 @@
 
     <div class="viewer">
       <!-- Toggle Button -->
-      <button id="toggle-view">Show 3D Model</button>
+      <!-- Updated button text to reflect initial state -->
+      <button id="toggle-view">Show Unity VR</button>
 
       <!-- Loading Overlay for Unity -->
       <div id="dashboard-loading-bar">
@@ -61,6 +63,7 @@
       </div>
 
       <!-- Unity Iframe Container -->
+      <!-- Unity is hidden by default -->
       <div id="unity-container">
         <iframe src="unity-vr/index.html" id="unity-iframe" frameborder="0"></iframe>
         <div id="webgl-warning">
@@ -70,6 +73,7 @@
       </div>
 
       <!-- model-viewer Container -->
+      <!-- 3D Model is visible by default -->
       <div id="model-viewer-container">
         <model-viewer 
           src="models/MVP1_Small.glb" 
